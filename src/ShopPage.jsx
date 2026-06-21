@@ -468,6 +468,26 @@ function CollectionGrid({ onSelect }) {
   const [sort, setSort] = useState("newest");
 
   const allProducts = useProducts();
+
+  const categoryOptions = useMemo(() => {
+    const known = new Map(CATEGORIES.map((c) => [c.key, c.label]));
+    const seen = new Map();
+    allProducts.forEach((p) => {
+      if (!p.category) return;
+      if (!seen.has(p.category)) {
+        seen.set(
+          p.category,
+          known.get(p.category) ||
+            p.category.charAt(0).toUpperCase() + p.category.slice(1),
+        );
+      }
+    });
+    return [
+      { key: "all", label: "All Products" },
+      ...Array.from(seen, ([key, label]) => ({ key, label })),
+    ];
+  }, [allProducts]);
+
   const filtered = useMemo(() => {
     let arr = [...allProducts];
     if (category !== "all") arr = arr.filter((p) => p.category === category);
@@ -504,7 +524,7 @@ function CollectionGrid({ onSelect }) {
               Filter
             </p>
             <ul className="space-y-3">
-              {CATEGORIES.map((c) => (
+              {categoryOptions.map((c) => (
                 <li
                   key={c.key}
                   onClick={() => setCategory(c.key)}

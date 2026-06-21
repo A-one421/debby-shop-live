@@ -26,5 +26,12 @@ export function useProducts() {
     return unsub
   }, [])
 
-  return [...liveProducts, ...staticProducts]
+  // Live (admin-uploaded / migrated) data takes priority over the
+  // hand-coded fallback when both share the same id — this lets us
+  // migrate the original products into Firestore later without
+  // ever showing duplicates on the storefront.
+  const map = new Map()
+  staticProducts.forEach((p) => map.set(p.id, p))
+  liveProducts.forEach((p) => map.set(p.id, p))
+  return Array.from(map.values())
 }
