@@ -17,6 +17,8 @@ import {
   ArrowLeft,
   Check,
   ShoppingCart,
+  SlidersHorizontal,
+  ArrowUpDown,
 } from "lucide-react";
 import { useCart } from "./CartContext";
 import SizeGuide from "./SizeGuide";
@@ -232,7 +234,7 @@ function VariantDetail({
         <span className="text-black">{variant.name}</span>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 pb-36 md:pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           {/* ── Left: image slider ── */}
           <div>
@@ -284,8 +286,8 @@ function VariantDetail({
               </div>
             </div>
 
-            {/* Qty + Add */}
-            <div className="flex gap-3 mb-4">
+            {/* Qty + Add — desktop inline (mobile uses the sticky bar below) */}
+            <div className="hidden md:flex gap-3 mb-4">
               <div className="flex items-center border border-gray-300 bg-white">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -454,6 +456,34 @@ function VariantDetail({
       </div>
 
       {showSG && <SizeGuide onClose={() => setShowSG(false)} />}
+
+      {/* Sticky mobile add-to-bag bar */}
+      <div
+        className="md:hidden fixed left-0 right-0 z-40 bg-white border-t border-gray-100 px-4 py-3 flex items-center gap-3"
+        style={{ bottom: "calc(64px + env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex items-center border border-gray-300 bg-white flex-shrink-0">
+          <button
+            onClick={() => setQty((q) => Math.max(1, q - 1))}
+            className="px-3 py-2.5 text-gray-500 text-base leading-none"
+          >
+            −
+          </button>
+          <span className="px-3 text-sm font-medium text-gray-900">{qty}</span>
+          <button
+            onClick={() => setQty((q) => q + 1)}
+            className="px-3 py-2.5 text-gray-500 text-base leading-none"
+          >
+            +
+          </button>
+        </div>
+        <button
+          onClick={handleAdd}
+          className="flex-1 bg-black text-white text-xs font-semibold uppercase tracking-widest py-3.5 hover:bg-[#C9A84C] transition-all duration-300"
+        >
+          {size ? "Add to Cart" : "Select Size to Add"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -464,8 +494,21 @@ function VariantDetail({
 function CollectionGrid({ onSelect }) {
   const [searchParams] = useSearchParams();
   const q = searchParams.get("q") || "";
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(
+    searchParams.get("category") || "all",
+  );
   const [sort, setSort] = useState("newest");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetClosing, setSheetClosing] = useState(false);
+  const { toggleWishlist, isInWishlist } = useCart();
+
+  function closeSheet() {
+    setSheetClosing(true);
+    setTimeout(() => {
+      setSheetOpen(false);
+      setSheetClosing(false);
+    }, 220);
+  }
 
   const allProducts = useProducts();
 
@@ -561,69 +604,173 @@ function CollectionGrid({ onSelect }) {
           </div>
         </aside>
 
-        {/* Mobile filter chips */}
-        <div className="md:hidden flex gap-2 overflow-x-auto px-4 py-4 hide-scrollbar border-b border-gray-100">
-          {CATEGORIES.map((c) => (
+        {/* Mobile toolbar: category chips + filter/sort sheet trigger */}
+        <div className="md:hidden sticky top-16 z-20 bg-white border-b border-gray-100">
+          <div className="flex items-center gap-2 px-4 py-3">
+            <div className="flex gap-2 overflow-x-auto hide-scrollbar flex-1">
+              {categoryOptions.map((c) => (
+                <button
+                  key={c.key}
+                  onClick={() => setCategory(c.key)}
+                  className={`chip ${category === c.key ? "active" : ""}`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
             <button
-              key={c.key}
-              onClick={() => setCategory(c.key)}
-              className={`px-4 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap border transition-all flex-shrink-0 ${
-                category === c.key
-                  ? "bg-black text-white border-black"
-                  : "border-gray-300 text-gray-600 hover:border-black"
-              }`}
+              onClick={() => setSheetOpen(true)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 border border-gray-300 rounded-full text-xs font-medium uppercase tracking-wide"
             >
-              {c.label}
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Sort
             </button>
-          ))}
+          </div>
         </div>
+
+        {/* Mobile filter/sort bottom sheet */}
+        {sheetOpen && (
+          <div className="md:hidden fixed inset-0 z-[60]">
+            <div
+              className={`absolute inset-0 bg-black/50 sheet-overlay ${sheetClosing ? "closing" : ""}`}
+              onClick={closeSheet}
+            />
+            <div
+              className={`absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl max-h-[75vh] overflow-y-auto sheet-panel ${sheetClosing ? "closing" : ""}`}
+            >
+              <div className="sheet-handle" />
+              <div className="px-6 pb-8 pt-2">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-serif text-lg">Sort & Filter</h3>
+                  <button onClick={closeSheet} className="p-1.5 text-gray-400">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">
+                  Category
+                </p>
+                <div className="flex flex-wrap gap-2 mb-7">
+                  {categoryOptions.map((c) => (
+                    <button
+                      key={c.key}
+                      onClick={() => setCategory(c.key)}
+                      className={`chip ${category === c.key ? "active" : ""}`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">
+                  Sort by
+                </p>
+                <div className="space-y-1 mb-8">
+                  {[
+                    ["newest", "Newest"],
+                    ["price-low", "Price: Low–High"],
+                    ["price-high", "Price: High–Low"],
+                  ].map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => setSort(val)}
+                      className="w-full flex items-center justify-between py-3 text-sm border-b border-gray-100"
+                    >
+                      <span
+                        className={
+                          sort === val
+                            ? "font-semibold text-black"
+                            : "text-gray-500"
+                        }
+                      >
+                        {label}
+                      </span>
+                      {sort === val && (
+                        <Check className="h-4 w-4 text-gold-500" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={closeSheet}
+                  className="w-full bg-black text-white py-3.5 text-xs font-semibold uppercase tracking-widest hover:bg-gold-400 hover:text-black transition-all"
+                >
+                  Show {filtered.length} Result
+                  {filtered.length === 1 ? "" : "s"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Grid */}
         <div className="flex-1 px-4 sm:px-8 pt-10 pb-20">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-            {filtered.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => onSelect(p)}
-                className="group relative overflow-hidden bg-[#f7f7f7] focus:outline-none text-left"
-              >
-                {/* Image */}
-                <div
-                  className="relative overflow-hidden"
-                  style={{ aspectRatio: "3/4" }}
-                >
-                  <img
-                    src={p.image}
-                    alt={p.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    onError={(e) =>
-                      (e.target.src =
-                        "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
-                    }
-                  />
-                  {p.tag && (
-                    <span
-                      className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 ${
-                        p.tag === "NEW"
-                          ? "bg-black text-white"
-                          : p.tag === "BEST"
-                            ? "bg-[#C9A84C] text-white"
-                            : "bg-red-600 text-white"
-                      }`}
+            {filtered.map((p) => {
+              const saved = isInWishlist(p.id);
+              return (
+                <div key={p.id} className="group relative">
+                  <button
+                    onClick={() => onSelect(p)}
+                    className="relative overflow-hidden bg-[#f7f7f7] focus:outline-none text-left block w-full"
+                  >
+                    {/* Image */}
+                    <div
+                      className="relative overflow-hidden"
+                      style={{ aspectRatio: "3/4" }}
                     >
-                      {p.tag}
-                    </span>
-                  )}
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        onError={(e) =>
+                          (e.target.src =
+                            "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
+                        }
+                      />
+                      {p.tag && (
+                        <span
+                          className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 ${
+                            p.tag === "NEW"
+                              ? "bg-black text-white"
+                              : p.tag === "BEST"
+                                ? "bg-[#C9A84C] text-white"
+                                : "bg-red-600 text-white"
+                          }`}
+                        >
+                          {p.tag}
+                        </span>
+                      )}
+                    </div>
+                    {/* Caption */}
+                    <div className="py-3 px-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {p.name}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        From ₦{p.price.toLocaleString()}
+                      </p>
+                    </div>
+                  </button>
+                  {/* Quick wishlist toggle */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const added = toggleWishlist(p);
+                      showToast(added ? "Saved" : "Removed");
+                    }}
+                    aria-label={
+                      saved ? "Remove from wishlist" : "Save to wishlist"
+                    }
+                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${saved ? "fill-red-500 text-red-500" : "text-gray-600"}`}
+                    />
+                  </button>
                 </div>
-                {/* Caption */}
-                <div className="py-3 px-1">
-                  <p className="text-sm font-medium text-gray-900">{p.name}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    From ₦{p.price.toLocaleString()}
-                  </p>
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -660,7 +807,7 @@ function CartView() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-16 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-16 pb-40 md:pb-16 animate-fade-in">
       <h1 className="font-serif text-2xl text-gray-900 mb-1">Your Bag</h1>
       <p className="text-sm text-gray-400 mb-10">
         {cart.reduce((s, i) => s + i.quantity, 0)} items
@@ -782,7 +929,7 @@ function CartView() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="hidden md:block space-y-3">
             <button
               onClick={() => payWithPaystack(email)}
               className="w-full bg-black text-white py-4 text-xs font-semibold uppercase tracking-widest hover:bg-[#C9A84C] transition-all flex items-center justify-center gap-2"
@@ -801,6 +948,36 @@ function CartView() {
             >
               Continue Shopping
             </button>
+          </div>
+
+          {/* Mobile: sticky checkout bar above the bottom nav */}
+          <div
+            className="md:hidden fixed left-0 right-0 z-40 bg-white border-t border-gray-100 px-4 pt-3"
+            style={{ bottom: "calc(64px + env(safe-area-inset-bottom))" }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-gray-400 uppercase tracking-wide">
+                Total
+              </span>
+              <span className="text-base font-semibold text-gray-900">
+                ₦{total.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex gap-2 pb-3">
+              <button
+                onClick={checkoutWhatsApp}
+                className="flex-shrink-0 px-4 border border-black text-black text-xs font-semibold uppercase tracking-widest flex items-center justify-center gap-1.5"
+                aria-label="Order via WhatsApp"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => payWithPaystack(email)}
+                className="flex-1 bg-black text-white py-3.5 text-xs font-semibold uppercase tracking-widest hover:bg-[#C9A84C] transition-all flex items-center justify-center gap-2"
+              >
+                <CreditCard className="h-4 w-4" /> Pay with Paystack
+              </button>
+            </div>
           </div>
         </>
       )}

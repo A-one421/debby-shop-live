@@ -1,8 +1,39 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin, ChevronDown } from "lucide-react";
 import { showToast } from "./Toast";
 import { PHONE, EMAIL, ADDRESS } from "./data";
+
+function FooterSection({ title, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="md:contents">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="md:hidden w-full flex items-center justify-between py-4 border-b border-white/10"
+      >
+        <h4
+          className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: "#C9A84C" }}
+        >
+          {title}
+        </h4>
+        <ChevronDown
+          className={`h-4 w-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      <div className={`${open ? "block" : "hidden"} md:block pb-4 md:pb-0`}>
+        <h4
+          className="hidden md:block text-xs font-semibold uppercase tracking-widest mb-5"
+          style={{ color: "#C9A84C" }}
+        >
+          {title}
+        </h4>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 /* ── Real SVG social icons ── */
 function IconInstagram() {
@@ -86,7 +117,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <span className="font-serif text-2xl tracking-tight">
-              DEBBY<span style={{ color: "#C9A84C" }}> CA</span>
+              DEBBY<span style={{ color: "#C9A84C" }}> HC</span>
             </span>
             <p className="text-gray-400 text-sm mt-4 leading-relaxed">
               Redefining luxury fashion for the modern woman. Quality, elegance,
@@ -109,13 +140,7 @@ export default function Footer() {
           </div>
 
           {/* Shop */}
-          <div>
-            <h4
-              className="text-xs font-semibold uppercase tracking-widest mb-5"
-              style={{ color: "#C9A84C" }}
-            >
-              Shop
-            </h4>
+          <FooterSection title="Shop">
             <ul className="space-y-3 text-gray-400 text-sm">
               {[
                 "New Arrivals",
@@ -133,16 +158,10 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </FooterSection>
 
           {/* Services */}
-          <div>
-            <h4
-              className="text-xs font-semibold uppercase tracking-widest mb-5"
-              style={{ color: "#C9A84C" }}
-            >
-              Services
-            </h4>
+          <FooterSection title="Services">
             <ul className="space-y-3 text-gray-400 text-sm">
               {[
                 ["Bespoke Tailoring", "/bespoke"],
@@ -160,16 +179,10 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </FooterSection>
 
           {/* Contact + Newsletter */}
-          <div>
-            <h4
-              className="text-xs font-semibold uppercase tracking-widest mb-5"
-              style={{ color: "#C9A84C" }}
-            >
-              Stay Connected
-            </h4>
+          <FooterSection title="Stay Connected" defaultOpen>
             <p className="text-gray-400 text-xs mb-4 leading-relaxed">
               Subscribe for exclusive offers and style inspiration.
             </p>
@@ -216,7 +229,7 @@ export default function Footer() {
                 <span>{ADDRESS}</span>
               </li>
             </ul>
-          </div>
+          </FooterSection>
         </div>
 
         {/* Bottom bar */}
