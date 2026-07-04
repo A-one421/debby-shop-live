@@ -18,7 +18,6 @@ import {
   Check,
   ShoppingCart,
   SlidersHorizontal,
-  ArrowUpDown,
 } from "lucide-react";
 import { useCart } from "./CartContext";
 import SizeGuide from "./SizeGuide";
@@ -26,62 +25,64 @@ import { CATEGORIES } from "./data";
 import { useProducts } from "./useProducts";
 import { showToast } from "./Toast";
 
-/* ─── helpers ─── */
 const GOLD = "#C9A84C";
 
-/* ══════════════════════════════════════════════
-   IMAGE SLIDER  — swipe + arrow, same outfit
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   IMAGE SLIDER  (swipe + arrows, dot indicators)
+════════════════════════════════════════════ */
 function ImageSlider({ images, alt }) {
   const [idx, setIdx] = useState(0);
   const startX = useRef(null);
 
-  useEffect(() => setIdx(0), [images.join()]);
+  useEffect(() => setIdx(0), [images.join(",")]);
 
   const prev = () => setIdx((i) => (i === 0 ? images.length - 1 : i - 1));
   const next = () => setIdx((i) => (i + 1) % images.length);
 
   return (
-    <div className="relative">
+    <div className="relative select-none">
       {/* Main frame */}
       <div
-        className="relative overflow-hidden bg-[#f7f7f7] cursor-grab active:cursor-grabbing"
+        className="relative overflow-hidden bg-[#f5f5f5]"
         style={{ aspectRatio: "3/4" }}
         onTouchStart={(e) => (startX.current = e.changedTouches[0].clientX)}
         onTouchEnd={(e) => {
+          if (startX.current === null) return;
           const diff = startX.current - e.changedTouches[0].clientX;
           if (Math.abs(diff) > 35) diff > 0 ? next() : prev();
+          startX.current = null;
         }}
       >
         {images.map((src, i) => (
           <img
             key={i}
             src={src}
-            alt={`${alt} view ${i + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-              i === idx ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+            alt={`${alt} — view ${i + 1}`}
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-400"
+            style={{ opacity: i === idx ? 1 : 0 }}
             onError={(e) =>
               (e.target.src =
-                "https://placehold.co/600x800/f0ede8/aaa?text=Debby")
+                "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
             }
           />
         ))}
 
-        {/* Side arrows — only show if multiple images */}
+        {/* Arrow buttons */}
         {images.length > 1 && (
           <>
             <button
               onClick={prev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center bg-white/80 hover:bg-white rounded-full shadow transition-all"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-all"
+              aria-label="Previous image"
             >
-              <ChevronLeft className="h-4 w-4 text-black" />
+              <ChevronLeft className="h-4 w-4 text-gray-700" />
             </button>
             <button
               onClick={next}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center bg-white/80 hover:bg-white rounded-full shadow transition-all"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-all"
+              aria-label="Next image"
             >
-              <ChevronRight className="h-4 w-4 text-black" />
+              <ChevronRight className="h-4 w-4 text-gray-700" />
             </button>
           </>
         )}
@@ -89,23 +90,25 @@ function ImageSlider({ images, alt }) {
 
       {/* Thumbnail strip */}
       {images.length > 1 && (
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-3 overflow-x-auto hide-scrollbar pb-1">
           {images.map((src, i) => (
             <button
               key={i}
               onClick={() => setIdx(i)}
-              className={`flex-1 aspect-square overflow-hidden border-b-2 transition-all duration-200 ${
-                i === idx
-                  ? "border-black opacity-100"
-                  : "border-transparent opacity-40 hover:opacity-70"
-              }`}
+              className="flex-shrink-0 w-16 h-20 overflow-hidden bg-gray-100 transition-all"
+              style={{
+                outline:
+                  i === idx ? `2px solid ${GOLD}` : "2px solid transparent",
+                outlineOffset: "2px",
+              }}
             >
               <img
                 src={src}
+                alt={`Thumbnail ${i + 1}`}
                 className="w-full h-full object-cover"
                 onError={(e) =>
                   (e.target.src =
-                    "https://placehold.co/120x160/f0ede8/aaa?text=+")
+                    "https://placehold.co/80x100/f0ede8/aaa?text=.")
                 }
               />
             </button>
@@ -116,10 +119,9 @@ function ImageSlider({ images, alt }) {
   );
 }
 
-/* ══════════════════════════════════════════════
-   STYLE GRID  — plain image tiles, no labels
-   (shown after clicking a category product)
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   STYLE GRID  (variants of one product)
+════════════════════════════════════════════ */
 function StyleGrid({ product, onSelect, onBack }) {
   useEffect(() => window.scrollTo(0, 0), [product.id]);
 
@@ -129,11 +131,10 @@ function StyleGrid({ product, onSelect, onBack }) {
 
   return (
     <div className="animate-fade-in">
-      {/* Minimal header */}
       <div className="px-4 sm:px-8 pt-8 pb-6 flex items-center gap-4 border-b border-gray-100">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+          className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </button>
@@ -141,18 +142,17 @@ function StyleGrid({ product, onSelect, onBack }) {
         <span className="font-serif text-lg text-gray-900">{product.name}</span>
       </div>
 
-      {/* Pure image grid — no badges, no counts */}
       <div className="px-4 sm:px-8 py-8">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {variants.map((v) => (
             <button
               key={v.id}
               onClick={() => onSelect(v, product)}
-              className="group relative overflow-hidden bg-[#f7f7f7] focus:outline-none"
+              className="group relative overflow-hidden bg-[#f5f5f5] focus:outline-none"
               style={{ aspectRatio: "3/4" }}
             >
               <img
-                src={v.image || (v.images && v.images[0])}
+                src={v.image || v.images?.[0]}
                 alt={v.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 onError={(e) =>
@@ -160,8 +160,10 @@ function StyleGrid({ product, onSelect, onBack }) {
                     "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
                 }
               />
-              {/* Hover overlay — just a subtle darken */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-all duration-300" />
+              <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <p className="text-white text-xs font-medium">{v.name}</p>
+              </div>
             </button>
           ))}
         </div>
@@ -170,9 +172,9 @@ function StyleGrid({ product, onSelect, onBack }) {
   );
 }
 
-/* ══════════════════════════════════════════════
-   VARIANT DETAIL — slider + order panel
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   VARIANT DETAIL  (PDP: image + order panel)
+════════════════════════════════════════════ */
 function VariantDetail({
   variant,
   parent,
@@ -203,14 +205,12 @@ function VariantDetail({
       return;
     }
     addToCart(variant, size, "", qty);
-    showToast(`${variant.name} added to cart`);
+    showToast(`${variant.name} added to bag ✓`);
   }
 
-  // Related: other variants of same parent
   const siblings = (parent?.variants || [])
     .filter((v) => v.id !== variant.id)
     .slice(0, 4);
-  // Also similar products (same category, different parent)
   const allProducts = useProducts();
   const related = allProducts
     .filter((p) => p.id !== parent?.id && p.category === parent?.category)
@@ -218,8 +218,8 @@ function VariantDetail({
 
   return (
     <div className="animate-fade-in">
-      {/* Breadcrumb nav */}
-      <div className="px-4 sm:px-8 pt-8 pb-4 flex items-center gap-2 text-xs uppercase tracking-widest text-gray-400">
+      {/* Breadcrumb */}
+      <div className="px-4 sm:px-8 pt-8 pb-4 flex items-center gap-2 text-[11px] uppercase tracking-widest text-gray-400 flex-wrap">
         <button onClick={onBack} className="hover:text-black transition-colors">
           Shop
         </button>
@@ -236,35 +236,31 @@ function VariantDetail({
 
       <div className="max-w-6xl mx-auto px-4 sm:px-8 pb-36 md:pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-          {/* ── Left: image slider ── */}
-          <div>
-            <ImageSlider images={images} alt={variant.name} />
-          </div>
+          {/* ── Image ── */}
+          <ImageSlider images={images} alt={variant.name} />
 
-          {/* ── Right: details ── */}
-          <div className="flex flex-col pt-2">
+          {/* ── Info panel ── */}
+          <div className="flex flex-col pt-1">
             <h1 className="font-serif text-2xl md:text-3xl text-gray-900 leading-snug mb-1">
               {variant.name}
             </h1>
-
-            <p className="text-xl font-medium text-gray-900 mb-6">
+            <p className="text-xl font-semibold text-gray-900 mb-2">
               ₦{variant.price.toLocaleString()}
             </p>
-
-            <p className="text-sm text-gray-500 leading-relaxed mb-8">
+            <p className="text-sm text-gray-400 leading-relaxed mb-7">
               {variant.description ||
                 "Premium quality fashion, crafted with care."}
             </p>
 
             {/* Size selector */}
-            <div className="mb-6">
+            <div className="mb-5">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-gray-900">
-                  Size
+                <span className="text-[11px] font-bold uppercase tracking-widest text-gray-900">
+                  Select Size
                 </span>
                 <button
                   onClick={() => setShowSG(true)}
-                  className="text-xs text-gray-400 hover:text-black transition-colors flex items-center gap-1"
+                  className="text-[11px] text-gray-400 hover:text-black transition-colors flex items-center gap-1"
                 >
                   <Ruler className="h-3 w-3" /> Size guide
                 </button>
@@ -286,12 +282,12 @@ function VariantDetail({
               </div>
             </div>
 
-            {/* Qty + Add — desktop inline (mobile uses the sticky bar below) */}
+            {/* Desktop: inline qty + add */}
             <div className="hidden md:flex gap-3 mb-4">
-              <div className="flex items-center border border-gray-300 bg-white">
+              <div className="flex items-center border border-gray-300">
                 <button
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="px-4 py-3 text-gray-500 hover:text-black transition-colors text-lg leading-none"
+                  className="px-4 py-3 text-gray-500 hover:text-black text-lg leading-none transition-colors"
                 >
                   −
                 </button>
@@ -300,7 +296,7 @@ function VariantDetail({
                 </span>
                 <button
                   onClick={() => setQty((q) => q + 1)}
-                  className="px-4 py-3 text-gray-500 hover:text-black transition-colors text-lg leading-none"
+                  className="px-4 py-3 text-gray-500 hover:text-black text-lg leading-none transition-colors"
                 >
                   +
                 </button>
@@ -309,11 +305,11 @@ function VariantDetail({
                 onClick={handleAdd}
                 className="flex-1 bg-black text-white text-xs font-semibold uppercase tracking-widest py-3 hover:bg-[#C9A84C] transition-all duration-300"
               >
-                Add to Cart
+                Add to Bag
               </button>
             </div>
 
-            {/* WhatsApp */}
+            {/* WhatsApp order */}
             <button
               onClick={() => {
                 const msg = `Hi! I'd like to order:\n*${variant.name}*\nSize: ${size || "TBD"}, Qty: ${qty}\nPrice: ₦${(variant.price * qty).toLocaleString()}`;
@@ -322,17 +318,19 @@ function VariantDetail({
                   "_blank",
                 );
               }}
-              className="w-full border border-gray-300 text-gray-700 text-xs font-semibold uppercase tracking-widest py-3 hover:border-black hover:text-black transition-all duration-300 flex items-center justify-center gap-2 mb-8"
+              className="w-full border border-gray-200 text-gray-700 text-xs font-semibold uppercase tracking-widest py-3 hover:border-black hover:text-black transition-all duration-300 flex items-center justify-center gap-2 mb-5"
             >
-              <MessageCircle className="h-4 w-4" style={{ color: "#25D366" }} />{" "}
+              <MessageCircle className="h-4 w-4" style={{ color: "#25D366" }} />
               Order via WhatsApp
             </button>
 
-            {/* Wishlist */}
+            {/* Wishlist toggle */}
             <button
               onClick={() => {
                 const added = toggleWishlist(variant);
-                showToast(added ? "Saved" : "Removed");
+                showToast(
+                  added ? "Saved to wishlist ♥" : "Removed from wishlist",
+                );
               }}
               className="flex items-center gap-2 text-xs text-gray-400 hover:text-black transition-colors mb-8 w-fit"
             >
@@ -342,7 +340,7 @@ function VariantDetail({
               {saved ? "Saved to wishlist" : "Save to wishlist"}
             </button>
 
-            {/* Accordions */}
+            {/* Accordion info */}
             <div className="border-t border-gray-100 divide-y divide-gray-100">
               {[
                 [
@@ -352,16 +350,16 @@ function VariantDetail({
                 ],
                 [
                   "Fabric & Care",
-                  "95% Polyester, 5% Elastane. Dry clean only. Iron on low heat.",
+                  "95% Polyester, 5% Elastane. Dry clean recommended. Iron on low heat.",
                 ],
                 [
                   "Shipping & Returns",
-                  "Free shipping on all orders. Returns accepted within 14 days in original unworn condition.",
+                  "Free shipping on all orders. Returns within 14 days in original unworn condition.",
                 ],
               ].map(([title, content]) => (
                 <div key={title}>
                   <button
-                    className="flex justify-between items-center w-full text-left py-4 text-xs font-semibold uppercase tracking-widest text-gray-900"
+                    className="flex justify-between items-center w-full text-left py-4 text-[11px] font-bold uppercase tracking-widest text-gray-900"
                     onClick={() => setOpen(open === title ? null : title)}
                   >
                     {title}
@@ -382,10 +380,10 @@ function VariantDetail({
           </div>
         </div>
 
-        {/* ── Other styles in this collection ── */}
+        {/* ── More from this style ── */}
         {siblings.length > 0 && (
           <div className="mt-20 pt-12 border-t border-gray-100">
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-8">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-400 mb-8">
               More from this style
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
@@ -393,7 +391,7 @@ function VariantDetail({
                 <button
                   key={v.id}
                   onClick={() => onRelatedClick(v, parent)}
-                  className="group relative overflow-hidden bg-[#f7f7f7] focus:outline-none"
+                  className="group relative overflow-hidden bg-[#f5f5f5] focus:outline-none"
                   style={{ aspectRatio: "3/4" }}
                 >
                   <img
@@ -407,7 +405,7 @@ function VariantDetail({
                   />
                   <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
                     <p className="text-white text-xs font-medium">{v.name}</p>
-                    <p className="text-white/80 text-xs">
+                    <p className="text-white/75 text-xs">
                       ₦{v.price.toLocaleString()}
                     </p>
                   </div>
@@ -417,13 +415,13 @@ function VariantDetail({
           </div>
         )}
 
-        {/* ── Related products ── */}
+        {/* ── You may also like ── */}
         {related.length > 0 && (
           <div className="mt-20 pt-12 border-t border-gray-100">
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-8">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-400 mb-8">
               You may also like
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
               {related.map((p) => (
                 <button
                   key={p.id}
@@ -431,7 +429,7 @@ function VariantDetail({
                   className="group text-left focus:outline-none"
                 >
                   <div
-                    className="relative overflow-hidden bg-[#f7f7f7] mb-3"
+                    className="relative overflow-hidden bg-[#f5f5f5] mb-3"
                     style={{ aspectRatio: "3/4" }}
                   >
                     <img
@@ -445,7 +443,7 @@ function VariantDetail({
                     />
                   </div>
                   <p className="text-sm font-medium text-gray-900">{p.name}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-gray-400 mt-0.5">
                     From ₦{p.price.toLocaleString()}
                   </p>
                 </button>
@@ -457,12 +455,12 @@ function VariantDetail({
 
       {showSG && <SizeGuide onClose={() => setShowSG(false)} />}
 
-      {/* Sticky mobile add-to-bag bar */}
+      {/* ── Mobile sticky add-to-bag bar (above bottom nav) ── */}
       <div
-        className="md:hidden fixed left-0 right-0 z-40 bg-white border-t border-gray-100 px-4 py-3 flex items-center gap-3"
+        className="md:hidden fixed inset-x-0 z-40 bg-white border-t border-gray-100 px-4 py-3 flex items-center gap-3"
         style={{ bottom: "calc(64px + env(safe-area-inset-bottom))" }}
       >
-        <div className="flex items-center border border-gray-300 bg-white flex-shrink-0">
+        <div className="flex items-center border border-gray-300 flex-shrink-0">
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             className="px-3 py-2.5 text-gray-500 text-base leading-none"
@@ -479,18 +477,18 @@ function VariantDetail({
         </div>
         <button
           onClick={handleAdd}
-          className="flex-1 bg-black text-white text-xs font-semibold uppercase tracking-widest py-3.5 hover:bg-[#C9A84C] transition-all duration-300"
+          className="flex-1 bg-black text-white text-[11px] font-bold uppercase tracking-[0.18em] py-3.5 hover:bg-[#C9A84C] transition-all duration-300"
         >
-          {size ? "Add to Cart" : "Select Size to Add"}
+          {size ? "Add to Bag" : "Select a Size"}
         </button>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════
-   COLLECTION GRID  — category cards
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   COLLECTION GRID  (main shop grid)
+════════════════════════════════════════════ */
 function CollectionGrid({ onSelect }) {
   const [searchParams] = useSearchParams();
   const q = searchParams.get("q") || "";
@@ -507,23 +505,22 @@ function CollectionGrid({ onSelect }) {
     setTimeout(() => {
       setSheetOpen(false);
       setSheetClosing(false);
-    }, 220);
+    }, 230);
   }
 
   const allProducts = useProducts();
 
+  /* Build category options dynamically (so admin-added cats appear too) */
   const categoryOptions = useMemo(() => {
     const known = new Map(CATEGORIES.map((c) => [c.key, c.label]));
     const seen = new Map();
     allProducts.forEach((p) => {
-      if (!p.category) return;
-      if (!seen.has(p.category)) {
-        seen.set(
-          p.category,
-          known.get(p.category) ||
-            p.category.charAt(0).toUpperCase() + p.category.slice(1),
-        );
-      }
+      if (!p.category || seen.has(p.category)) return;
+      seen.set(
+        p.category,
+        known.get(p.category) ||
+          p.category.charAt(0).toUpperCase() + p.category.slice(1),
+      );
     });
     return [
       { key: "all", label: "All Products" },
@@ -539,7 +536,7 @@ function CollectionGrid({ onSelect }) {
       arr = arr.filter(
         (p) =>
           p.name.toLowerCase().includes(ql) ||
-          p.collection.toLowerCase().includes(ql),
+          (p.collection || "").toLowerCase().includes(ql),
       );
     }
     if (sort === "price-low") arr.sort((a, b) => a.price - b.price);
@@ -549,54 +546,59 @@ function CollectionGrid({ onSelect }) {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="px-4 sm:px-8 pt-10 pb-8 border-b border-gray-100">
-        <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
+      {/* Page header */}
+      <div className="px-4 sm:px-8 pt-10 pb-6 border-b border-gray-100">
+        <p className="text-[11px] uppercase tracking-[0.2em] text-gray-400 mb-1">
           Debby Haute Couture
         </p>
-        <h1 className="font-serif text-3xl md:text-4xl text-gray-900">
-          The Collection
-        </h1>
+        <div className="flex items-end justify-between">
+          <h1 className="font-serif text-3xl md:text-4xl text-gray-900">
+            The Collection
+          </h1>
+          <span className="text-xs text-gray-400 hidden sm:block">
+            {filtered.length} piece{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row">
-        {/* Sidebar */}
-        <aside className="hidden md:block w-48 flex-shrink-0 px-8 pt-10">
-          <div className="sticky top-24">
-            <p className="text-xs uppercase tracking-widest text-gray-400 mb-4">
-              Filter
-            </p>
-            <ul className="space-y-3">
-              {categoryOptions.map((c) => (
-                <li
-                  key={c.key}
-                  onClick={() => setCategory(c.key)}
-                  className={`text-sm cursor-pointer transition-colors ${
-                    category === c.key
-                      ? "text-black font-semibold"
-                      : "text-gray-400 hover:text-black"
-                  }`}
-                >
-                  {c.label}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-10">
-              <p className="text-xs uppercase tracking-widest text-gray-400 mb-4">
-                Sort
+        {/* Desktop sidebar */}
+        <aside className="hidden md:block w-52 flex-shrink-0 px-8 pt-10">
+          <div className="sticky top-24 space-y-8">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">
+                Category
               </p>
-              <ul className="space-y-3">
+              <ul className="space-y-2.5">
+                {categoryOptions.map((c) => (
+                  <li key={c.key}>
+                    <button
+                      onClick={() => setCategory(c.key)}
+                      className={`text-sm transition-colors text-left w-full ${category === c.key ? "text-black font-semibold" : "text-gray-400 hover:text-black"}`}
+                    >
+                      {c.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-4">
+                Sort by
+              </p>
+              <ul className="space-y-2.5">
                 {[
                   ["newest", "Newest"],
                   ["price-low", "Price: Low–High"],
                   ["price-high", "Price: High–Low"],
                 ].map(([val, label]) => (
-                  <li
-                    key={val}
-                    onClick={() => setSort(val)}
-                    className={`text-sm cursor-pointer transition-colors ${sort === val ? "text-black font-semibold" : "text-gray-400 hover:text-black"}`}
-                  >
-                    {label}
+                  <li key={val}>
+                    <button
+                      onClick={() => setSort(val)}
+                      className={`text-sm transition-colors text-left w-full ${sort === val ? "text-black font-semibold" : "text-gray-400 hover:text-black"}`}
+                    >
+                      {label}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -604,7 +606,7 @@ function CollectionGrid({ onSelect }) {
           </div>
         </aside>
 
-        {/* Mobile toolbar: category chips + filter/sort sheet trigger */}
+        {/* Mobile: sticky chip toolbar */}
         <div className="md:hidden sticky top-16 z-20 bg-white border-b border-gray-100">
           <div className="flex items-center gap-2 px-4 py-3">
             <div className="flex gap-2 overflow-x-auto hide-scrollbar flex-1">
@@ -620,14 +622,14 @@ function CollectionGrid({ onSelect }) {
             </div>
             <button
               onClick={() => setSheetOpen(true)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 border border-gray-300 rounded-full text-xs font-medium uppercase tracking-wide"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 border border-gray-300 rounded-full text-[11px] font-medium uppercase tracking-wide"
             >
               <SlidersHorizontal className="h-3.5 w-3.5" /> Sort
             </button>
           </div>
         </div>
 
-        {/* Mobile filter/sort bottom sheet */}
+        {/* Mobile: sort bottom sheet */}
         {sheetOpen && (
           <div className="md:hidden fixed inset-0 z-[60]">
             <div
@@ -635,18 +637,18 @@ function CollectionGrid({ onSelect }) {
               onClick={closeSheet}
             />
             <div
-              className={`absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl max-h-[75vh] overflow-y-auto sheet-panel ${sheetClosing ? "closing" : ""}`}
+              className={`absolute inset-x-0 bottom-0 bg-white rounded-t-2xl max-h-[75dvh] overflow-y-auto sheet-panel ${sheetClosing ? "closing" : ""}`}
             >
               <div className="sheet-handle" />
-              <div className="px-6 pb-8 pt-2">
-                <div className="flex items-center justify-between mb-6">
+              <div className="px-6 pb-8 pt-1">
+                <div className="flex items-center justify-between mb-5">
                   <h3 className="font-serif text-lg">Sort & Filter</h3>
                   <button onClick={closeSheet} className="p-1.5 text-gray-400">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
 
-                <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">
                   Category
                 </p>
                 <div className="flex flex-wrap gap-2 mb-7">
@@ -661,10 +663,10 @@ function CollectionGrid({ onSelect }) {
                   ))}
                 </div>
 
-                <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">
                   Sort by
                 </p>
-                <div className="space-y-1 mb-8">
+                <div className="space-y-0 mb-8">
                   {[
                     ["newest", "Newest"],
                     ["price-low", "Price: Low–High"],
@@ -673,7 +675,7 @@ function CollectionGrid({ onSelect }) {
                     <button
                       key={val}
                       onClick={() => setSort(val)}
-                      className="w-full flex items-center justify-between py-3 text-sm border-b border-gray-100"
+                      className="w-full flex items-center justify-between py-3.5 text-sm border-b border-gray-100"
                     >
                       <span
                         className={
@@ -685,7 +687,7 @@ function CollectionGrid({ onSelect }) {
                         {label}
                       </span>
                       {sort === val && (
-                        <Check className="h-4 w-4 text-gold-500" />
+                        <Check className="h-4 w-4" style={{ color: GOLD }} />
                       )}
                     </button>
                   ))}
@@ -693,94 +695,105 @@ function CollectionGrid({ onSelect }) {
 
                 <button
                   onClick={closeSheet}
-                  className="w-full bg-black text-white py-3.5 text-xs font-semibold uppercase tracking-widest hover:bg-gold-400 hover:text-black transition-all"
+                  className="w-full bg-black text-white py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-[#C9A84C] transition-all"
                 >
                   Show {filtered.length} Result
-                  {filtered.length === 1 ? "" : "s"}
+                  {filtered.length !== 1 ? "s" : ""}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Grid */}
-        <div className="flex-1 px-4 sm:px-8 pt-10 pb-20">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-            {filtered.map((p) => {
-              const saved = isInWishlist(p.id);
-              return (
-                <div key={p.id} className="group relative">
-                  <button
-                    onClick={() => onSelect(p)}
-                    className="relative overflow-hidden bg-[#f7f7f7] focus:outline-none text-left block w-full"
-                  >
-                    {/* Image */}
-                    <div
-                      className="relative overflow-hidden"
-                      style={{ aspectRatio: "3/4" }}
+        {/* Product grid */}
+        <main className="flex-1 px-4 sm:px-6 pt-8 pb-28">
+          {filtered.length === 0 ? (
+            <div className="text-center py-24 text-gray-400">
+              <ShoppingBag className="h-12 w-12 mx-auto mb-4 text-gray-200" />
+              <p>No products found</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+              {filtered.map((p) => {
+                const saved = isInWishlist(p.id);
+                return (
+                  <div key={p.id} className="group relative">
+                    <button
+                      onClick={() => onSelect(p)}
+                      className="block w-full text-left focus:outline-none"
                     >
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        onError={(e) =>
-                          (e.target.src =
-                            "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
-                        }
+                      <div
+                        className="relative overflow-hidden bg-[#f5f5f5]"
+                        style={{ aspectRatio: "3/4" }}
+                      >
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          onError={(e) =>
+                            (e.target.src =
+                              "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
+                          }
+                        />
+                        {p.tag && (
+                          <span
+                            className="absolute top-2.5 left-2.5 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5"
+                            style={{
+                              background:
+                                p.tag === "NEW"
+                                  ? "#0a0a0a"
+                                  : p.tag === "BEST"
+                                    ? GOLD
+                                    : "#dc2626",
+                              color: "#fff",
+                            }}
+                          >
+                            {p.tag}
+                          </span>
+                        )}
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/6 transition-all duration-300" />
+                      </div>
+                      <div className="py-3 px-0.5">
+                        <p className="text-sm font-medium text-gray-900 leading-tight">
+                          {p.name}
+                        </p>
+                        <p className="text-sm text-gray-400 mt-0.5">
+                          From ₦{p.price.toLocaleString()}
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Quick wishlist toggle */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const added = toggleWishlist(p);
+                        showToast(added ? "Saved ♥" : "Removed");
+                      }}
+                      aria-label={
+                        saved ? "Remove from wishlist" : "Save to wishlist"
+                      }
+                      className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm transition-transform hover:scale-110"
+                    >
+                      <Heart
+                        className={`h-4 w-4 transition-colors ${saved ? "fill-red-500 text-red-500" : "text-gray-500"}`}
                       />
-                      {p.tag && (
-                        <span
-                          className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 ${
-                            p.tag === "NEW"
-                              ? "bg-black text-white"
-                              : p.tag === "BEST"
-                                ? "bg-[#C9A84C] text-white"
-                                : "bg-red-600 text-white"
-                          }`}
-                        >
-                          {p.tag}
-                        </span>
-                      )}
-                    </div>
-                    {/* Caption */}
-                    <div className="py-3 px-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {p.name}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        From ₦{p.price.toLocaleString()}
-                      </p>
-                    </div>
-                  </button>
-                  {/* Quick wishlist toggle */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const added = toggleWishlist(p);
-                      showToast(added ? "Saved" : "Removed");
-                    }}
-                    aria-label={
-                      saved ? "Remove from wishlist" : "Save to wishlist"
-                    }
-                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm"
-                  >
-                    <Heart
-                      className={`h-4 w-4 ${saved ? "fill-red-500 text-red-500" : "text-gray-600"}`}
-                    />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════════════
    CART
-══════════════════════════════════════════════ */
+════════════════════════════════════════════ */
 function CartView() {
   const navigate = useNavigate();
   const {
@@ -807,28 +820,30 @@ function CartView() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-16 pb-40 md:pb-16 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-4 sm:px-8 py-12 pb-40 md:pb-16 animate-fade-in">
       <h1 className="font-serif text-2xl text-gray-900 mb-1">Your Bag</h1>
       <p className="text-sm text-gray-400 mb-10">
-        {cart.reduce((s, i) => s + i.quantity, 0)} items
+        {cart.reduce((s, i) => s + i.quantity, 0)} item
+        {cart.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
       </p>
 
       {cart.length === 0 ? (
-        <div className="text-center py-20">
-          <ShoppingBag className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-400 mb-6">Your bag is empty</p>
+        <div className="text-center py-24">
+          <ShoppingBag className="h-14 w-14 text-gray-200 mx-auto mb-5" />
+          <p className="text-gray-400 mb-6 text-sm">Your bag is empty</p>
           <button
             onClick={() => navigate("/shop")}
-            className="bg-black text-white px-8 py-3 text-xs uppercase tracking-widest hover:bg-[#C9A84C] transition-all"
+            className="bg-black text-white px-8 py-3.5 text-[11px] uppercase tracking-[0.18em] font-semibold hover:bg-[#C9A84C] transition-all"
           >
             Shop Now
           </button>
         </div>
       ) : (
         <>
+          {/* Item list */}
           <div className="border-t border-gray-100 divide-y divide-gray-100 mb-10">
             {cart.map((item) => (
-              <div key={`${item.id}-${item.size}`} className="flex gap-5 py-6">
+              <div key={`${item.id}-${item.size}`} className="flex gap-5 py-5">
                 <div className="w-20 h-28 flex-shrink-0 bg-gray-100 overflow-hidden">
                   <img
                     src={item.image}
@@ -836,14 +851,15 @@ function CartView() {
                     onError={(e) =>
                       (e.target.src = "https://placehold.co/200x300/f0ede8/aaa")
                     }
+                    alt={item.name}
                   />
                 </div>
-                <div className="flex-1">
-                  <div className="flex justify-between mb-1">
-                    <h3 className="text-sm font-medium text-gray-900">
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between mb-0.5 gap-2">
+                    <h3 className="text-sm font-medium text-gray-900 truncate">
                       {item.name}
                     </h3>
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm text-gray-900 flex-shrink-0">
                       ₦{(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
@@ -856,18 +872,18 @@ function CartView() {
                         onClick={() =>
                           updateQty(item.id, item.size, item.color, -1)
                         }
-                        className="px-3 py-1.5 text-gray-400 hover:text-black"
+                        className="px-3 py-1.5 text-gray-400 hover:text-black transition-colors"
                       >
                         −
                       </button>
-                      <span className="px-3 text-xs text-gray-900">
+                      <span className="px-3 text-xs font-medium text-gray-900">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() =>
                           updateQty(item.id, item.size, item.color, 1)
                         }
-                        className="px-3 py-1.5 text-gray-400 hover:text-black"
+                        className="px-3 py-1.5 text-gray-400 hover:text-black transition-colors"
                       >
                         +
                       </button>
@@ -887,27 +903,29 @@ function CartView() {
             ))}
           </div>
 
-          {/* Email */}
-          <div className="bg-gray-50 p-4 mb-8">
+          {/* Email capture */}
+          <div className="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-100">
             <p className="text-xs text-gray-500 mb-2">
               Email for payment receipt
             </p>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="w-full border border-gray-200 px-3 py-2 text-sm mb-2"
-            />
-            <button
-              onClick={saveEmail}
-              className="text-xs bg-black text-white px-4 py-2"
-            >
-              Save
-            </button>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:border-gold-400 transition-colors"
+              />
+              <button
+                onClick={saveEmail}
+                className="bg-black text-white text-xs px-4 py-2 rounded hover:bg-[#C9A84C] transition-all"
+              >
+                Save
+              </button>
+            </div>
           </div>
 
-          {/* Totals */}
+          {/* Order summary */}
           <div className="space-y-3 mb-8">
             {[
               ["Subtotal", `₦${subtotal.toLocaleString()}`],
@@ -917,7 +935,11 @@ function CartView() {
               <div key={l} className="flex justify-between text-sm">
                 <span className="text-gray-400">{l}</span>
                 <span
-                  className={v === "Free" ? "text-green-600" : "text-gray-900"}
+                  className={
+                    v === "Free"
+                      ? "text-green-600 font-medium"
+                      : "text-gray-900"
+                  }
                 >
                   {v}
                 </span>
@@ -929,16 +951,17 @@ function CartView() {
             </div>
           </div>
 
+          {/* Desktop checkout buttons */}
           <div className="hidden md:block space-y-3">
             <button
               onClick={() => payWithPaystack(email)}
-              className="w-full bg-black text-white py-4 text-xs font-semibold uppercase tracking-widest hover:bg-[#C9A84C] transition-all flex items-center justify-center gap-2"
+              className="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.18em] hover:bg-[#C9A84C] transition-all flex items-center justify-center gap-2"
             >
               <CreditCard className="h-4 w-4" /> Pay with Paystack
             </button>
             <button
               onClick={checkoutWhatsApp}
-              className="w-full border border-black text-black py-4 text-xs font-semibold uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2"
+              className="w-full border border-black text-black py-4 text-[11px] font-bold uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2"
             >
               <MessageCircle className="h-4 w-4" /> Order via WhatsApp
             </button>
@@ -950,30 +973,30 @@ function CartView() {
             </button>
           </div>
 
-          {/* Mobile: sticky checkout bar above the bottom nav */}
+          {/* Mobile sticky checkout bar */}
           <div
-            className="md:hidden fixed left-0 right-0 z-40 bg-white border-t border-gray-100 px-4 pt-3"
+            className="md:hidden fixed inset-x-0 z-40 bg-white border-t border-gray-100 px-4 pt-3 pb-2"
             style={{ bottom: "calc(64px + env(safe-area-inset-bottom))" }}
           >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-gray-400 uppercase tracking-wide">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[11px] text-gray-400 uppercase tracking-wider">
                 Total
               </span>
-              <span className="text-base font-semibold text-gray-900">
-                ₦{total.toFixed(2)}
+              <span className="text-base font-bold text-gray-900">
+                ₦{total.toLocaleString()}
               </span>
             </div>
-            <div className="flex gap-2 pb-3">
+            <div className="flex gap-2">
               <button
                 onClick={checkoutWhatsApp}
-                className="flex-shrink-0 px-4 border border-black text-black text-xs font-semibold uppercase tracking-widest flex items-center justify-center gap-1.5"
                 aria-label="Order via WhatsApp"
+                className="flex-shrink-0 h-12 w-12 border border-gray-300 text-gray-700 flex items-center justify-center hover:border-black transition-all"
               >
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-5 w-5" />
               </button>
               <button
                 onClick={() => payWithPaystack(email)}
-                className="flex-1 bg-black text-white py-3.5 text-xs font-semibold uppercase tracking-widest hover:bg-[#C9A84C] transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-black text-white h-12 text-[11px] font-bold uppercase tracking-[0.18em] hover:bg-[#C9A84C] transition-all flex items-center justify-center gap-2"
               >
                 <CreditCard className="h-4 w-4" /> Pay with Paystack
               </button>
@@ -985,35 +1008,37 @@ function CartView() {
   );
 }
 
-/* ══════════════════════════════════════════════
-   FAVORITES
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   FAVORITES / WISHLIST
+════════════════════════════════════════════ */
 function FavoritesView({ onOpenProduct }) {
   const navigate = useNavigate();
   const { wishlist, toggleWishlist } = useCart();
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-16 animate-fade-in">
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-12 pb-24 animate-fade-in">
       <h1 className="font-serif text-2xl text-gray-900 mb-1">Wishlist</h1>
       <p className="text-sm text-gray-400 mb-10">
-        {wishlist.length} items saved
+        {wishlist.length} item{wishlist.length !== 1 ? "s" : ""} saved
       </p>
+
       {wishlist.length === 0 ? (
-        <div className="text-center py-20">
-          <Heart className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-400 mb-6">Nothing saved yet</p>
+        <div className="text-center py-24">
+          <Heart className="h-14 w-14 text-gray-200 mx-auto mb-5" />
+          <p className="text-gray-400 mb-6 text-sm">Nothing saved yet</p>
           <button
             onClick={() => navigate("/shop")}
-            className="bg-black text-white px-8 py-3 text-xs uppercase tracking-widest hover:bg-[#C9A84C] transition-all"
+            className="bg-black text-white px-8 py-3.5 text-[11px] uppercase tracking-[0.18em] font-semibold hover:bg-[#C9A84C] transition-all"
           >
             Browse Collection
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
           {wishlist.map((p) => (
             <div key={p.id} className="group">
               <div
-                className="relative overflow-hidden bg-gray-100 mb-3"
+                className="relative overflow-hidden bg-[#f5f5f5] mb-3"
                 style={{ aspectRatio: "3/4" }}
               >
                 <img
@@ -1023,24 +1048,28 @@ function FavoritesView({ onOpenProduct }) {
                     (e.target.src =
                       "https://placehold.co/400x600/f0ede8/aaa?text=Debby")
                   }
+                  alt={p.name}
                 />
                 <button
                   onClick={() => {
                     toggleWishlist(p);
                     showToast("Removed");
                   }}
-                  className="absolute top-2 right-2 bg-white p-1.5 rounded-full"
+                  className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm"
+                  aria-label="Remove from wishlist"
                 >
                   <X className="h-3.5 w-3.5 text-gray-600" />
                 </button>
               </div>
-              <p className="text-sm font-medium text-gray-900">{p.name}</p>
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {p.name}
+              </p>
+              <p className="text-sm text-gray-400 mb-3">
                 ₦{p.price.toLocaleString()}
               </p>
               <button
                 onClick={() => onOpenProduct(p)}
-                className="w-full border border-black text-xs uppercase tracking-widest font-semibold py-2.5 hover:bg-black hover:text-white transition-all"
+                className="w-full border border-black text-[11px] uppercase tracking-[0.18em] font-semibold py-2.5 hover:bg-black hover:text-white transition-all"
               >
                 View
               </button>
@@ -1052,30 +1081,26 @@ function FavoritesView({ onOpenProduct }) {
   );
 }
 
-/* ══════════════════════════════════════════════
-   ROOT — state machine: collection → styles → detail
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   ROOT — state machine router
+════════════════════════════════════════════ */
 export default function ShopPage({ initialView }) {
   const navigate = useNavigate();
-
-  // "collection" | "styles" | "detail"
   const [view, setView] = useState("collection");
-  const [activeProduct, setActiveProduct] = useState(null); // parent product
-  const [activeVariant, setActiveVariant] = useState(null); // chosen style
+  const [activeProduct, setActiveProduct] = useState(null);
+  const [activeVariant, setActiveVariant] = useState(null);
 
   function goToStyles(product) {
     setActiveProduct(product);
     setView("styles");
     window.scrollTo(0, 0);
   }
-
   function goToDetail(variant, parent) {
     setActiveVariant(variant);
     if (parent) setActiveProduct(parent);
     setView("detail");
     window.scrollTo(0, 0);
   }
-
   function goToCollection() {
     setView("collection");
     setActiveProduct(null);
@@ -1083,7 +1108,6 @@ export default function ShopPage({ initialView }) {
     navigate("/shop");
   }
 
-  // Special routes
   if (initialView === "cart") return <CartView />;
   if (initialView === "favorites")
     return <FavoritesView onOpenProduct={goToStyles} />;
@@ -1100,11 +1124,8 @@ export default function ShopPage({ initialView }) {
           window.scrollTo(0, 0);
         }}
         onRelatedClick={(variant, product, isNewProduct) => {
-          if (isNewProduct) {
-            goToStyles(product);
-          } else {
-            goToDetail(variant, product);
-          }
+          if (isNewProduct) goToStyles(product);
+          else goToDetail(variant, product);
         }}
       />
     );
@@ -1114,7 +1135,7 @@ export default function ShopPage({ initialView }) {
     return (
       <StyleGrid
         product={activeProduct}
-        onSelect={(variant, parent) => goToDetail(variant, parent)}
+        onSelect={goToDetail}
         onBack={goToCollection}
       />
     );

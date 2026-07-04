@@ -13,277 +13,66 @@
     background: #fff;
     color: #111;
     scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
   }
-  ::-webkit-scrollbar {
-    width: 5px;
+  img {
+    max-width: 100%;
+    display: block;
   }
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #d4af37;
-    border-radius: 3px;
-  }
-  input:focus,
-  select:focus,
-  textarea:focus {
+  input,
+  select,
+  textarea {
     outline: none;
-    border-color: #d4af37 !important;
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
   }
 }
 
-@layer components {
-  .font-serif {
-    font-family: "Playfair Display", serif;
-  }
-  .btn-gold {
-    @apply bg-black text-white border border-black transition-all duration-300 hover:bg-gold-400 hover:border-gold-400 hover:text-black;
-  }
-  .btn-outline-dark {
-    @apply border border-black bg-transparent text-black transition-all duration-300 hover:bg-black hover:text-white;
-  }
-  .hover-lift {
-    transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease;
-  }
-  .hover-lift:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
-  }
-  .service-card {
-    transition: all 0.4s ease;
-    border: 1px solid #f0f0f0;
-  }
-  .service-card:hover {
-    transform: translateY(-6px);
-    border-color: #d4af37;
-    box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
-  }
-  .footer-link {
-    transition: color 0.2s;
-    color: #9ca3af;
-  }
-  .footer-link:hover {
-    color: #d4af37;
-  }
-  .reveal-on-scroll {
-    opacity: 0;
-    transform: translateY(28px);
-    transition:
-      opacity 0.8s ease,
-      transform 0.7s ease;
-  }
-  .reveal-on-scroll.revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .elegant-input {
-    border-bottom: 1px solid #e5e7eb;
-    transition: border-color 0.3s;
-  }
-  .elegant-input:focus-within {
-    border-bottom-color: #d4af37;
-  }
-  .time-slider {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    background: linear-gradient(to right, #e5e7eb, #d4af37);
-    outline: none;
-    cursor: pointer;
-  }
-  .time-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #d4af37;
-    cursor: pointer;
-    border: 3px solid white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s;
-  }
-  .time-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
 }
 
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ── Hide scrollbar but keep scroll (mobile rails) ── */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes shimmerGold {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-@keyframes loading {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-@keyframes slideInLeft {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-@keyframes slideOutLeft {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-}
-@keyframes toastIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-@keyframes toastOut {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.animate-fade-up {
-  animation: fadeUp 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-}
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-.animate-spin-custom {
-  animation: spin 1s linear infinite;
-}
-.slide-in-left {
-  animation: slideInLeft 0.6s ease-out forwards;
-}
-.slide-out-left {
-  animation: slideOutLeft 0.6s ease-in forwards;
+/* ── Focus ring (on-brand gold) ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
 }
 
-.loader-text-special {
-  font-size: 3rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  background: linear-gradient(135deg, #f5e7a3, #d4af37, #b8860b);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmerGold 2.2s infinite;
-}
-.sup-hc {
-  font-size: 1.4rem;
-  vertical-align: super;
-  background: linear-gradient(135deg, #d4af37, #f5e7a3);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-.loader-bar {
-  width: 220px;
-  height: 2px;
-  background: rgba(212, 175, 55, 0.3);
-  position: relative;
-  overflow: hidden;
-  margin-top: 1.8rem;
-  border-radius: 4px;
-}
-.loader-bar::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, #d4af37, #ffdf80);
-  animation: loading 1.6s ease-in-out infinite;
-}
-
+/* ════════════════════════════════════════════
+   HERO SLIDER
+════════════════════════════════════════════ */
 .hero-slider-modern {
   position: relative;
-  height: 90vh;
-  min-height: 580px;
   width: 100%;
+  height: 100dvh;
+  min-height: 560px;
+  max-height: 900px;
   overflow: hidden;
+  background: #0a0a0a;
 }
 .slide-modern {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   opacity: 0;
-  transition: opacity 1.2s ease-in-out;
+  transition: opacity 1s ease;
   z-index: 1;
 }
 .slide-modern.active {
@@ -294,87 +83,54 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.05);
-  transition: transform 8s ease-out;
-}
-.slide-modern.active img {
-  transform: scale(1);
 }
 
-.product-card-hover {
-  transition: transform 0.5s ease;
-}
-.product-card-hover:hover {
-  transform: scale(1.05);
-}
-.quick-add {
-  transform: translateY(100%);
-  transition: transform 0.3s;
-}
-.group:hover .quick-add {
-  transform: translateY(0);
-}
-.wishlist-icon {
+/* ════════════════════════════════════════════
+   SCROLL REVEAL
+════════════════════════════════════════════ */
+.reveal-on-scroll {
   opacity: 0;
-  transition: opacity 0.2s;
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s ease;
 }
-.group:hover .wishlist-icon {
+.reveal-on-scroll.revealed {
   opacity: 1;
+  transform: none;
 }
 
-/* ── Professional overrides ── */
-.animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+/* ════════════════════════════════════════════
+   HOVER LIFT (cards / features)
+════════════════════════════════════════════ */
+.hover-lift {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.12);
+}
+
+/* ════════════════════════════════════════════
+   FADE IN
+════════════════════════════════════════════ */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
-
-/* Remove childish transforms on product cards */
-.group:hover .product-card-hover {
-  transform: none;
-}
-.product-card-hover:hover {
-  transform: none;
-  box-shadow: none;
-}
-.hover-lift:hover {
-  transform: none;
-  box-shadow: none;
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
 }
 
-/* Clean scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 0;
-}
-
-/* ══════════════════════════════════════════════
-   APP-SHELL / MOBILE REVAMP UTILITIES
-══════════════════════════════════════════════ */
-
-/* Safe-area aware spacing for fixed bottom elements */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.bottom-nav-h {
-  height: calc(64px + env(safe-area-inset-bottom));
-}
-
-/* Bottom-sheet (filter/sort) */
+/* ════════════════════════════════════════════
+   BOTTOM SHEET  (sort / filter panel)
+════════════════════════════════════════════ */
 @keyframes sheetUp {
   from {
     transform: translateY(100%);
@@ -407,28 +163,32 @@
     opacity: 0;
   }
 }
+
 .sheet-overlay {
-  animation: overlayIn 0.25s ease-out forwards;
+  animation: overlayIn 0.22s ease-out forwards;
 }
 .sheet-overlay.closing {
-  animation: overlayOut 0.2s ease-in forwards;
+  animation: overlayOut 0.18s ease-in forwards;
 }
 .sheet-panel {
-  animation: sheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: sheetUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .sheet-panel.closing {
-  animation: sheetDown 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: sheetDown 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
+
 .sheet-handle {
-  width: 36px;
+  width: 38px;
   height: 4px;
   border-radius: 2px;
-  background: #e5e5e5;
+  background: #e5e7eb;
   margin: 10px auto 4px;
 }
 
-/* Right-side drawer (mobile menu) */
-@keyframes drawerInRight {
+/* ════════════════════════════════════════════
+   RIGHT-SIDE DRAWER  (mobile menu)
+════════════════════════════════════════════ */
+@keyframes drawerIn {
   from {
     transform: translateX(100%);
   }
@@ -436,7 +196,7 @@
     transform: translateX(0);
   }
 }
-@keyframes drawerOutRight {
+@keyframes drawerOut {
   from {
     transform: translateX(0);
   }
@@ -445,50 +205,43 @@
   }
 }
 .drawer-in {
-  animation: drawerInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: drawerIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .drawer-out {
-  animation: drawerOutRight 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: drawerOut 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* Sticky add-to-bag / checkout bars */
-.sticky-cta-bar {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -6px 20px -10px rgba(0, 0, 0, 0.12);
-  z-index: 30;
-}
-
-/* Elevated center action (cart) in bottom nav, Cider/Shein style */
+/* ════════════════════════════════════════════
+   ELEVATED CENTER NAV FAB  (cart button)
+════════════════════════════════════════════ */
 .nav-fab {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a0a;
-  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.45);
   border: 3px solid #fff;
-  transition: transform 0.2s ease;
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 .nav-fab:active {
-  transform: scale(0.92);
+  transform: scale(0.91);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
 }
 
-/* Badge pulse for cart/wishlist counts */
+/* ════════════════════════════════════════════
+   BADGE POP  (cart & wishlist counts)
+════════════════════════════════════════════ */
 @keyframes badgePop {
   0% {
-    transform: scale(0.4);
+    transform: scale(0.3);
     opacity: 0;
   }
   60% {
-    transform: scale(1.15);
+    transform: scale(1.2);
     opacity: 1;
   }
   100% {
@@ -497,35 +250,24 @@
   }
 }
 .badge-pop {
-  animation: badgePop 0.3s ease-out;
+  animation: badgePop 0.28s ease-out both;
 }
 
-/* Image skeleton shimmer for product tiles while loading */
-@keyframes shimmerSkeleton {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-.img-skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #f7f7f7 37%, #f0f0f0 63%);
-  background-size: 400% 100%;
-  animation: shimmerSkeleton 1.4s ease infinite;
-}
-
-/* Segmented pill control (mobile category/sort chips) */
+/* ════════════════════════════════════════════
+   CATEGORY CHIP  (filter rail)
+════════════════════════════════════════════ */
 .chip {
-  padding: 7px 16px;
+  padding: 6px 16px;
   font-size: 11px;
-  letter-spacing: 0.06em;
+  font-weight: 500;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e5e7eb;
   border-radius: 999px;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   flex-shrink: 0;
+  cursor: pointer;
 }
 .chip.active {
   background: #0a0a0a;
@@ -536,16 +278,25 @@
   border-color: #0a0a0a;
 }
 
-/* Focus visibility for accessibility (kept subtle, on-brand) */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #d4af37;
-  outline-offset: 2px;
+/* ════════════════════════════════════════════
+   PRELOADER  (Debby brand loader)
+════════════════════════════════════════════ */
+.loader-text-special {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  letter-spacing: 0.12em;
+  color: #d4af37;
+}
+.sup-hc {
+  font-size: 0.38em;
+  letter-spacing: 0.25em;
+  vertical-align: super;
+  color: #fff;
+  opacity: 0.7;
 }
 
+/* ════════════════════════════════════════════
+   REDUCED MOTION
+════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
