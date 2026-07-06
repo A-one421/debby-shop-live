@@ -21,7 +21,7 @@ export const ADDRESS = "Aromokeye Shopping Complex, Surulere Street, Ido Ekiti";
 export const EMAILJS_SERVICE = "service_q6a199l";
 export const EMAILJS_TEMPLATE_OWNER = "template_w7dnq98";
 export const EMAILJS_TEMPLATE_CUST = "template_dxlofhd";
-export const PAYSTACK_KEY = "pk_live_185116ee2ec8bf53f71ed0565d0410a665a7f3c3";
+export const PAYSTACK_KEY = import.meta.env.VITE_PAYSTACK_KEY;
 
 export const CATEGORIES = [
   { key: "all", label: "All Products" },

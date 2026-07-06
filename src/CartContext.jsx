@@ -115,7 +115,7 @@ export function CartProvider({ children }) {
       ref: "DEBBY_" + Date.now(),
       callback: () => {
         clearCart();
-        alert("Payment successful! Order confirmed 🎉");
+        alert("Payment successful! Order confirmed ");
       },
       onClose: () => {},
     });

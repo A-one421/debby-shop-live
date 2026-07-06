@@ -58,6 +58,7 @@ function HeroSlider() {
           <img
             src={sl.src}
             alt={sl.alt}
+            style={{ filter: "brightness(0.72)" }}
             onError={(e) =>
               (e.target.src =
                 "https://placehold.co/1200x800/0a0a0a/D4AF37?text=Debby+Couture")
@@ -66,29 +67,44 @@ function HeroSlider() {
         </div>
       ))}
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/58 z-[3]" />
+      {/* Overlay — gradient top-to-bottom for depth */}
+      <div
+        className="absolute inset-0 z-[3]"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.80) 100%)",
+        }}
+      />
 
       {/* Text / CTAs */}
       <div className="absolute inset-x-0 bottom-[18%] md:bottom-[22%] z-[4] text-center text-white px-6">
         <div className="max-w-3xl mx-auto">
-          <span className="inline-block text-[11px] md:text-xs tracking-[0.28em] uppercase mb-5 bg-black/40 backdrop-blur-sm px-5 py-1.5 rounded-full font-medium border border-white/20">
+          <span className="inline-block text-[11px] md:text-xs tracking-[0.28em] uppercase mb-5 bg-black/60 backdrop-blur-sm px-5 py-1.5 rounded-full font-medium border border-white/20">
             For culture and class
           </span>
-          <h1 className="font-serif text-[2.6rem] sm:text-5xl md:text-6xl lg:text-7xl leading-tight tracking-wide mb-5 drop-shadow-lg">
+          <h1
+            className="font-serif text-[2.6rem] sm:text-5xl md:text-6xl lg:text-7xl leading-tight tracking-wide mb-5"
+            style={{ textShadow: "0 2px 20px rgba(0,0,0,0.8)" }}
+          >
             Individuality <br />
             <em className="not-italic" style={{ color: "#D4AF37" }}>
               Over trends
             </em>
           </h1>
-          <p className="text-sm md:text-lg max-w-lg mx-auto text-white/85 mb-8 leading-relaxed">
+          <p
+            className="text-sm md:text-lg max-w-lg mx-auto mb-8 leading-relaxed"
+            style={{
+              color: "rgba(255,255,255,0.92)",
+              textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+            }}
+          >
             Luxury women's fashion crafted with timeless elegance and premium
             tailoring.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => navigate("/shop")}
-              className="px-8 py-3.5 bg-white text-black text-xs font-semibold tracking-[0.18em] uppercase hover:bg-gold-400 hover:text-black transition-all duration-300 shadow-md"
+              className="px-8 py-3.5 bg-white text-black text-xs font-semibold tracking-[0.18em] uppercase hover:bg-gold-400 hover:text-black transition-all duration-300 shadow-lg"
             >
               Explore Collection
             </button>
