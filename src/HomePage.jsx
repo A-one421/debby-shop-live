@@ -143,10 +143,10 @@ function HeroSlider() {
 function CategoryRail() {
   const navigate = useNavigate();
   const tiles = [
-    { key: "tops", label: "Tops & Blouses", img: "/img4.jpg" },
-    { key: "pants", label: "Pants & Trousers", img: "/img2.jpg" },
-    { key: "ankara", label: "Ankara & Heritage", img: "/heritage1.jpg" },
-    { key: "bridal", label: "Bridal & Asoebi", img: "/img5.jpg" },
+    { key: "tops", label: "Pant & Top", img: "/img4.jpg" },
+    { key: "pants", label: "Skirt & Blouse", img: "/img2.jpg" },
+    { key: "ankara", label: "Gown Dress", img: "/heritage1.jpg" },
+    { key: "bridal", label: "Jump Suit", img: "/img5.jpg" },
   ];
 
   return (
